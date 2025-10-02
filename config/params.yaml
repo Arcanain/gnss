@@ -1,0 +1,27 @@
+rtk_judge:
+  ros__parameters:
+    # === トピック名 ===
+    fix_topic: "/ublox_gps_node/fix"        # GNSS受信機からの NavSatFix メッセージ / will be subscribed
+    gnss_pose_topic: "/gnss_pose"           # GNSSから推定された位置(PoseStamped)/ will be subscribed
+    odom_in_topic: "/odrive_odom"           # オドメトリ入力（車輪やIMU等のOdometry） / will be subscribed
+    odom_out_topic: "/switch_odom"          # 切替後に配信するOdometry / will be published
+    publish_tf: true                        # TFを配信するかどうか（falseで停止可能） / will be published
+
+    # === 座標フレーム ===
+    frame_id_odom: "odom"                   # 出力Odometryの親フレーム
+    frame_id_base: "base_link"              # 出力Odometryの子フレーム
+    use_map_to_odom_identity: true          # map→odom を恒等変換として配信するかどうか
+
+    # === タイミング設定 ===
+    loop_hz: 20.0                           # 出力周期 [Hz]（例: 20Hz = 50msごと）
+
+    # === 切替判定の閾値 ===
+    rtk_fix_value: 2                        # GNSSがRTK-Fixと判定されるstatus値
+    v_min: 0.2                              # GNSSを信頼するための最低速度 [m/s]
+    d_min: 0.03                             # GNSSアンカーとの差分距離の下限 [m]
+    d_max: 3.0                              # GNSSアンカーとの差分距離の上限 [m]
+    yaw_jump_thresh_rad: 0.314              # ヨー角のジャンプを検出する閾値 [rad] (≈ π/10)
+    anchor_update_count: 20                 # GNSSアンカーを更新するカウント数
+
+    # === デバッグ関連 ===
+    diag_enable: true                       # Diagnostic情報を配信するかどうか
