@@ -10,30 +10,97 @@ using namespace std::chrono_literals;
 namespace gnss {
 
 GnssNode::GnssNode(const rclcpp::NodeOptions& options)
-: Node("gnss_node", options) {
-    RCLCPP_INFO(this->get_logger(), "GNSS Node starting up...");
+: rclcpp_lifecycle::LifecycleNode("gnss_node", options){
+    RCLCPP_INFO(this->get_logger(), "GNSS Node is in Unconfigured state now.");
+}
 
-    // Publishers and Broadcasters
+// on_configure: Called when the node transitions to the "configured" state
+GnssNode::CallbackReturn GnssNode::on_configure(const rclcpp_lifecycle::State &)
+{
+    RCLCPP_INFO(this->get_logger(),"Configuring GnssNode . . . ");
+
+    //INITIALIZE PUBLISHERS
     switch_odom_pub_ = this->create_publisher<nav_msgs::msg::Odometry>("switch_odom", 10);
+
+    //INITIALIZE BROADCASTERS
     odom_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
     static_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
 
-    // Subscribers
+    //INITIALIZE SUBSCRICERS
     fix_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>(
         "/ublox_gps_node/fix", 10, std::bind(&GnssNode::fixCallback, this, _1));
-        
-    gnss_pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
+    
+        gnss_pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
         "/gnss_pose", 10, std::bind(&GnssNode::gnssPoseCallback, this, _1));
     
     odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
         "odrive_odom", 10, std::bind(&GnssNode::odometryCallback, this, _1));
 
-    // Timer
+    RCLCPP_INFO(this->get_logger(),"Configuring GnssNOde COMPLETE!!! ");
+
+    return CallbackReturn::SUCCESS;
+}
+
+// on_activate: Called when the node transitions to the "activated" state
+GnssNode::CallbackReturn GnssNode::on_activate(const rclcpp_lifecycle::State &)
+{
+    RCLCPP_INFO(this->get_logger(),"Activating GnssNode . . .");
+    //Activate Publisher
+    switch_odom_pub_->on_activate();
+
+    //INITIALIZE Timer
     timer_ = this->create_wall_timer(50ms, std::bind(&GnssNode::timerCallback, this));
 
-    // Send the static transform once
+    //Activate Static BroadCaster
     sendStaticTransform();
+    
+    RCLCPP_INFO(this->get_logger(),"Activating GnssNode COMPLETE !!!");
+    
+    return CallbackReturn::SUCCESS;
 }
+
+// on_deactivate: Called when node transitions to the "deactivated/inactivated" state
+GnssNode::CallbackReturn GnssNode::on_deactivate(const rclcpp_lifecycle::State &)
+{
+    RCLCPP_INFO(this->get_logger(),"DEactivating GnssNode . . .");
+    //Deactivate Publisher
+    switch_odom_pub_->on_deactivate();
+
+    //STOP,DISCARD Timer
+    timer_.reset();
+    
+    RCLCPP_INFO(this->get_logger(),"DEctivating GnssNode COMPLETE !!!");
+    
+    return CallbackReturn::SUCCESS;
+}
+
+// on_cleanup: Called when the node transitions to Unconfigured state.
+GnssNode::CallbackReturn GnssNode::on_cleanup(const rclcpp_lifecycle::State &)
+{
+    RCLCPP_INFO(this->get_logger(),"Clearning up GnssNode . . .");
+
+    //DISCAEDING
+    timer_.reset();
+    switch_odom_pub_.reset();
+    odom_sub_.reset();
+    gnss_pose_sub_.reset();
+    fix_sub_.reset();
+    static_broadcaster_.reset();
+    odom_broadcaster_.reset();
+    
+    RCLCPP_INFO(this->get_logger(),"Cleaning Up GnssNode COMPLETE !!!");
+
+    return CallbackReturn::SUCCESS;
+}
+
+// on_shutdown: Called when discarding the node. 
+GnssNode::CallbackReturn GnssNode::on_shutdown(const rclcpp_lifecycle::State &)
+{
+    RCLCPP_INFO(this->get_logger(), "Shutting down GnssNode...");
+    // ここでは特に何もしませんが、将来的なリソース解放処理のために残しておきます (?)
+    return CallbackReturn::SUCCESS;
+}
+
 
 void GnssNode::fixCallback(const sensor_msgs::msg::NavSatFix::SharedPtr msg) {
     gnss_component_.setFixStatus(msg->status.status);
