@@ -30,7 +30,7 @@ GnssNode::CallbackReturn GnssNode::on_configure(const rclcpp_lifecycle::State &)
     fix_sub_ = this->create_subscription<sensor_msgs::msg::NavSatFix>(
         "/ublox_gps_node/fix", 10, std::bind(&GnssNode::fixCallback, this, _1));
     
-        gnss_pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
+    gnss_pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
         "/gnss_pose", 10, std::bind(&GnssNode::gnssPoseCallback, this, _1));
     
     odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
