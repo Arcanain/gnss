@@ -1,6 +1,7 @@
+//include/gnss/gnss_node.hpp
 #pragma once
 
-#include "rclcpp/rclcpp.hpp"
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
 #include "sensor_msgs/msg/nav_sat_fix.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav_msgs/msg/odometry.hpp"
@@ -12,9 +13,18 @@
 
 namespace gnss {
 
-class GnssNode : public rclcpp::Node {
+class GnssNode : public rclcpp_lifecycle::LifecycleNode {
 public:
     explicit GnssNode(const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
+    // CallbackReturnのエイリアスを定義しておくと便利
+    using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
+
+protected:
+    CallbackReturn on_configure(const rclcpp_lifecycle::State &) override;
+    CallbackReturn on_activate(const rclcpp_lifecycle::State &) override;
+    CallbackReturn on_deactivate(const rclcpp_lifecycle::State &) override;
+    CallbackReturn on_cleanup(const rclcpp_lifecycle::State &) override;
+    CallbackReturn on_shutdown(const rclcpp_lifecycle::State &) override;
 
 private:
     void fixCallback(const sensor_msgs::msg::NavSatFix::SharedPtr msg);
@@ -23,18 +33,20 @@ private:
     void timerCallback();
     void sendStaticTransform();
 
-    // 計算ロジック本体のインスタンス
-    GnssComponent gnss_component_;
-
-    // ROS関連のメンバー
+    // ROS関連のメンバ変数
+    // SUBSCRIBERS
     rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr fix_sub_;
     rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr gnss_pose_sub_;
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
-    rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr switch_odom_pub_;
+    // PUBLISHERS
+    rclcpp_lifecycle::LifecyclePublisher<nav_msgs::msg::Odometry>::SharedPtr switch_odom_pub_;
+    // BROADCASTERS
     std::shared_ptr<tf2_ros::TransformBroadcaster> odom_broadcaster_;
     std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_broadcaster_;
+    // TIMER
     rclcpp::TimerBase::SharedPtr timer_;
-    
+    // 計算ロジック本体のインスタンス
+    GnssComponent gnss_component_;
     // 最初のデータが届いたかを確認するフラグ
     bool ublox_received_ = false;
     bool gnss_pose_received_ = false;
