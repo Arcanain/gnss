@@ -16,6 +16,7 @@ find_package(nav_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED) # NavSatFixのために追加
 find_package(tf2_ros REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
+find_package(rclcpp_lifecycle REQUIRED)
 
 # C++のバージョンを17に設定
 set(CMAKE_CXX_STANDARD 17)
@@ -34,6 +35,7 @@ add_library(gnss_library
 # ライブラリが依存するパッケージを指定します。
 ament_target_dependencies(gnss_library
   rclcpp
+  rclcpp_lifecycle
   geometry_msgs
   nav_msgs
   sensor_msgs
