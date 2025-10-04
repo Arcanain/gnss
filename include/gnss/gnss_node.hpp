@@ -23,7 +23,7 @@ private:
     void timerCallback();
     void sendStaticTransform();
 
-    // 計算ロジック本体のインスタンス
+    // 計算ロジック本体のインスタンス生成
     GnssComponent gnss_component_;
 
     // ROS関連のメンバー

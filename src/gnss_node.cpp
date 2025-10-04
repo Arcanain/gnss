@@ -71,7 +71,7 @@ void GnssNode::timerCallback() {
     // 計算コンポーネントに処理を依頼
     FusedOdom result = gnss_component_.computeFusedOdometry();
 
-    // 結果をROSメッセージに変換
+    // 以下結果をROSメッセージに変換
     auto current_time = this->get_clock()->now();
 
     tf2::Quaternion odom_quat;
