@@ -29,6 +29,7 @@ void GnssComponent::updateOdometry(const OdomInput& odom_data) {
     pre_odrive_yaw_ = odom_data.yaw;
 }
 
+//この計算自体純粋な数値計算にできる（ROSから切り離せる）ので，component.hppに書いてもいいかもしれない．
 FusedOdom GnssComponent::computeFusedOdometry() {
     if (fix_flag_) {
         x_ = gnss_x_;
