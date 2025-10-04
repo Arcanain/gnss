@@ -45,6 +45,7 @@ GnssNode::CallbackReturn GnssNode::on_configure(const rclcpp_lifecycle::State &)
 GnssNode::CallbackReturn GnssNode::on_activate(const rclcpp_lifecycle::State &)
 {
     RCLCPP_INFO(this->get_logger(),"Activating GnssNode . . .");
+    
     //Activate Publisher
     switch_odom_pub_->on_activate();
 
